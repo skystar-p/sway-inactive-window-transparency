@@ -10,6 +10,11 @@ use tokio_stream::StreamExt;
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
+    let opacity = std::env::vars()
+        .find(|(k, _)| k == "INACTIVE_OPACITY")
+        .map(|(_, v)| v)
+        .unwrap_or("0.8".into());
+
     let mut conn = I3::connect().await?;
 
     // find focused workspace
@@ -53,21 +58,27 @@ async fn main() -> anyhow::Result<()> {
             continue;
         }
 
+        tracing::debug!("window event: {:?}", window_event);
+
         let focused_workspace = match find_focused_workspace(&mut conn).await? {
             Some(w) => w,
             None => continue,
         };
         let focused_node = window_event.container;
+        // if focused node is changed, update opacity
         if focused_node.id != prev_focused_node.id {
-            conn.run_command(format!("[con_id=\"{}\"] opacity {}", focused_node.id, "1"))
+            // set opacity of currently focused node to 1
+            conn.run_command(format!("[con_id=\"{}\"] opacity 1", focused_node.id))
                 .await?;
+            // set opacity of previously focused node (now inactive node) to given value
             if prev_focused_workspace_num == focused_workspace.num {
                 conn.run_command(format!(
-                    "[con_id=\"{}\"] {}",
-                    prev_focused_node.id, "opacity 0.8"
+                    "[con_id=\"{}\"] opacity {}",
+                    prev_focused_node.id, &opacity
                 ))
                 .await?;
             }
+
             prev_focused_node = focused_node.clone();
             prev_focused_workspace_num = focused_workspace.num;
         }
