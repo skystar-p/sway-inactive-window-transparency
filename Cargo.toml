@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.58"
-ctrlc = "3.2.2"
+ctrlc-async = { version = "3.2.2", features = ["termination"] }
 tokio = { version = "1.20.0", features = ["full"] }
 tokio-i3ipc = { git = "https://github.com/skystar-p/tokio-i3ipc", branch = "master", features = ["sway"] }
 tokio-stream = "0.1.9"

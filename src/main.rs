@@ -1,7 +1,7 @@
 use anyhow::bail;
 use tokio_i3ipc::{
     event::{Event, Subscribe, WindowChange},
-    reply::{Node, Workspace},
+    reply::{Node, NodeType, Workspace},
     I3,
 };
 use tokio_stream::StreamExt;
@@ -9,6 +9,22 @@ use tokio_stream::StreamExt;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
+
+    ctrlc_async::set_async_handler(async {
+        tracing::info!("received interrupt. exiting...");
+        let mut conn = I3::connect().await.expect("failed to connect to i3");
+        let nodes = get_all_nodes(&mut conn).await.expect("failed to get nodes");
+        for node in nodes {
+            match conn
+                .run_command(format!("[con_id=\"{}\"] opacity 1", node.id))
+                .await
+            {
+                Ok(_) => (),
+                Err(_) => tracing::error!("failed to set opacity of node: id {}", node.id),
+            }
+        }
+        std::process::exit(0);
+    })?;
 
     let opacity = std::env::vars()
         .find(|(k, _)| k == "INACTIVE_OPACITY")
@@ -108,4 +124,20 @@ async fn find_focused_node(conn: &mut I3) -> anyhow::Result<Option<Node>> {
 
     let tree = conn.get_tree().await?;
     Ok(find(&tree))
+}
+
+async fn get_all_nodes(conn: &mut I3) -> anyhow::Result<Vec<Node>> {
+    fn recurse(node: &Node, nodes: &mut Vec<Node>) {
+        if node.node_type == NodeType::Con {
+            nodes.push(node.clone());
+        }
+        for child in node.nodes.iter() {
+            recurse(child, nodes);
+        }
+    }
+    let tree = conn.get_tree().await?;
+    let mut nodes = Vec::new();
+    recurse(&tree, &mut nodes);
+
+    Ok(nodes)
 }
