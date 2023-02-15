@@ -106,7 +106,7 @@ async fn main() -> anyhow::Result<()> {
 async fn find_focused_workspace(conn: &mut I3) -> anyhow::Result<Option<Workspace>> {
     let workspaces = conn.get_workspaces().await?;
     let focused_workspace = workspaces.into_iter().find(|w| w.focused);
-    Ok(focused_workspace.clone())
+    Ok(focused_workspace)
 }
 
 async fn find_focused_node(conn: &mut I3) -> anyhow::Result<Option<Node>> {
@@ -116,7 +116,7 @@ async fn find_focused_node(conn: &mut I3) -> anyhow::Result<Option<Node>> {
         }
         for child in node.nodes.iter() {
             if let Some(focused) = find(child) {
-                return Some(focused.clone());
+                return Some(focused);
             }
         }
         None
