@@ -13,7 +13,7 @@
     in
     {
       packages = forAllSystems (system: {
-        default = pkgsFor.${system}.callPackage ./. { };
+        sway-inactive-window-transparency = pkgsFor.${system}.callPackage ./. { };
       });
     };
 }
