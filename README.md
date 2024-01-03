@@ -41,3 +41,9 @@ Description=Set inactive window transparency on sway
 ```sh
 ./sway-inactive-window-transparency
 ```
+
+## Configuration
+
+Set your additional environment variable as:
+
+* `INACTIVE_OPACITY`: opacity of inactive window. Default is `0.8`.
