@@ -25,16 +25,16 @@ exec "systemctl --user import-environment {,WAYLAND_}DISPLAY SWAYSOCK I3SOCK"
 
 Then just write systemd user service like below. Replace `sway-session.target` as you want.
 ```
-[Install]
-WantedBy=sway-session.target
+[Unit]
+Description=Set inactive window transparency on sway
+BindsTo=sway-session.target
 
 [Service]
 ExecStart=/path/to/your/sway-inactive-window-transparency
 Type=simple
 
-[Unit]
-BindsTo=sway-session.target
-Description=Set inactive window transparency on sway
+[Install]
+WantedBy=sway-session.target
 ```
 
 ... Or just execute directly from your shell.
