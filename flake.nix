@@ -13,7 +13,7 @@
       system:
       let pkgs = import nixpkgs { inherit system; };
       in {
-        defaultPackage = (import ./. { inherit pkgs; });
+        packages.default = (pkgs.callPackage ./. { });
       }
     );
 }
